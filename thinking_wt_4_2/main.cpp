@@ -1,31 +1,3 @@
-# Thinking Wt 4: polishing a TicTacToe game
-
-This [article](CppArticle.htm) shows the way to improve the looks of a
-TicTacToe game when using the [Wt](CppWt.htm) [library](CppLibrary.htm).
-The previous [article](CppArticle.htm), [Thinking Wt 3: creating a
-TicTacToe game](CppThinkingWt3.htm), serves as a starting point.
-
-## Overview
-
-This [article](CppArticle.htm) elaborates on [Thinking Wt 3: creating a
-TicTacToe game](CppThinkingWt3.htm) in which a TicTacToe application was
-created. First, a css will be applied to all widgets. After the screen
-layout is adjusted, the WtApplication dialog management is transferred
-to a new dialog.
-
-## Step 0: Starting point
-
-The code below is the finishing point of the previous
-[article](CppArticle.htm), [Thinking Wt 3: creating a TicTacToe
-game](CppThinkingWt3.htm). For this [article](CppArticle.htm), it serves
-as a starting point.
-
-
-Because the program is finished, except for changing the looks, only
-small parts of this code will be changed.
-
-```
-
 #include <boost/signals2.hpp>
 #include <Wt/WApplication>
 #include <Wt/WBreak>
@@ -40,6 +12,7 @@ small parts of this code will be changed.
 #include <Wt/WPushButton>
 #include <Wt/WText>
 #include <Wt/WTextArea>
+#include <QFile>
 #include "tictactoe.h"
 //---------------------------------------------------------------------------
 struct WtTicTacToeWidget : public Wt::WPaintedWidget
@@ -152,6 +125,7 @@ struct WtTicTacToeAboutDialog : public Wt::WContainerWidget
   WtTicTacToeAboutDialog()
   : m_button_close(new Wt::WPushButton)
   {
+    this->setContentAlignment(Wt::AlignCenter);
     {
       Wt::WTextArea * text = new Wt::WTextArea;
       text->setText(
@@ -184,6 +158,7 @@ struct WtTicTacToeGameDialog : public Wt::WContainerWidget
     m_button_restart(new Wt::WPushButton),
     m_tictactoe(new WtTicTacToeWidget)
   {
+    this->setContentAlignment(Wt::AlignCenter);
     this->addWidget(m_tictactoe);
     this->addWidget(new Wt::WBreak);
     this->addWidget(m_button_restart);
@@ -242,7 +217,12 @@ struct WtTicTacToeMenuDialog : public Wt::WContainerWidget
   : m_button_about(new Wt::WPushButton),
     m_button_start(new Wt::WPushButton)
   {
-    this->addWidget(new Wt::WText("TicTacToe"));
+    this->setContentAlignment(Wt::AlignCenter);
+    {
+      Wt::WText * const title = new Wt::WText("TicTacToe");
+      title->setStyleClass("title");
+      this->addWidget(title);
+    }
     this->addWidget(new Wt::WBreak);
     this->addWidget(m_button_start);
     this->addWidget(new Wt::WBreak);
@@ -277,6 +257,7 @@ struct WtTicTacToeApplication : public Wt::WApplication
     : Wt::WApplication(env)
   {
     this->setTitle("Thinking Wt 4: polishing a TicTacToe game");
+    this->useStyleSheet("wt.css");
     ShowMenu();
   }
   private:
@@ -324,200 +305,13 @@ Wt::WApplication *createApplication(
 //---------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
+  {
+    QFile f(":/files/wt.css");
+    f.copy("wt.css");
+  }
+  {
+    QFile f(":/files/RichelbilderbeekNlBackground.png");
+    f.copy("RichelbilderbeekNlBackground.png");
+  }
   return WRun(argc, argv, &createApplication);
 }
-```
-
-## Step 1: applying a style sheet
-
-To apply a style sheet to an application, use the useStyleSheet [member
-function](CppMemberFunction.htm) of
-[Wt::WApplication](CppWApplication.htm):
-
-```
-struct WtTicTacToeApplication : public Wt::WApplication
-{
-  WtTicTacToeApplication(const Wt::WEnvironment& env)
-    : Wt::WApplication(env)
-  {
-    //...
-    this->useStyleSheet("wt.css");
-  }
-};
-```
-
-The file 'wt.css' contains the following text:
-
-```
-/* Set all fonts to Courier New */
-* { font-family:"Courier New"; }
-
-body
-{
-  background-image:url('RichelbilderbeekNlBackground.png');
-  background-position:center center;
-}
-
-.title
-{
-  font-weight:bold;
-  font-size:xx-large;
-}
-```
-
-Do not forget to put 'wt.css' and 'RichelbilderbeekNlBackground.png' in
-the same folder as the Wt executable.
-
-Adding this style sheet and the single line of additional code, changes
-all fonts to Courier New. Also, it adds a background image to the
-application
-
-The next step is to apply the css 'title' style to the title of the menu
-dialog. In the original code, we added an anonymous
-[Wt::WText](CppWText.htm) (which is commented out in the code below).
-Now, we will have to temporarily name it and apply the setStyleClass
-[member function](CppMemberFunction.htm):
-
-```
-
-struct WtTicTacToeMenuDialog : public Wt::WContainerWidget
-{
-  WtTicTacToeMenuDialog()
-  {
-    //this->addWidget(new Wt::WText("TicTacToe"));
-    {
-      Wt::WText * const title = new Wt::WText("TicTacToe");
-      title->setStyleClass("title");
-      this->addWidget(title);
-    }
-    //...
-  }
-};
-```
-
-## Step 2: layout
-
-Now that the menu title is made larger, the menu buttons should be
-centered below the title. To do this, call the [member
-function](CppMemberFunction.htm) 'setContentAlignment':
-
-```
-
-struct WtTicTacToeMenuDialog : public Wt::WContainerWidget
-{
-  WtTicTacToeMenuDialog()
-  {
-    this->setContentAlignment(Wt::AlignCenter);
-    //...
-  }
-  //...
-};
-```
-
-I have done this for all the dialogs.
-
-
-## Step 3: transfer dialog management from WtApplication to a new dialog
-
-Personally, I like to be able to call this application from other
-programs as well. Because a program only has a single application
-object, all application dialog management is transferred to a new
-dialog. To be able to close the menu, a new button is added.
-
-```
-struct WtTicTacToeMenuDialog : public Wt::WContainerWidget
-{
-  WtTicTacToeMenuDialog()
-  : m_button_close(new Wt::WPushButton)
-  {
-    this->addWidget(new Wt::WBreak);
-    this->addWidget(m_button_close);
-    m_button_close->setText("Close");
-    m_button_close->clicked().connect(
-      this,&WtTicTacToeMenuDialog::OnClose);
-    //...
-  }
-  boost::signals2::signal<void ()> m_signal_close;
-  private:
-  Wt::WPushButton * const m_button_close;
-  void OnClose()
-  {
-    //emit that this menu must be closed
-    m_signal_close();
-  }
-};
-//---------------------------------------------------------------------------
-struct WtTicTacToeDialog : public Wt::WContainerWidget
-{
-  WtTicTacToeDialog()
-  {
-    ShowMenu();
-  }
-  boost::signals2::signal<void ()> m_signal_close;
-  private:
-  void Close()
-  {
-    m_signal_close();
-  }
-  void ShowAbout()
-  {
-    WtTicTacToeAboutDialog * const d = new WtTicTacToeAboutDialog;
-    d->m_signal_close.connect(
-    boost::bind(
-      &WtTicTacToeDialog::ShowMenu,
-      this));
-    this->clear();
-    this->addWidget(d);
-  }
-  void ShowMenu()
-  {
-    WtTicTacToeMenuDialog * const d = new WtTicTacToeMenuDialog;
-    d->m_signal_about.connect(
-    boost::bind(
-      &WtTicTacToeDialog::ShowAbout,
-      this));
-    d->m_signal_close.connect(
-    boost::bind(
-      &WtTicTacToeDialog::Close,
-      this));
-    d->m_signal_start.connect(
-    boost::bind(
-      &WtTicTacToeDialog::Start,
-      this));
-    this->clear();
-    this->addWidget(d);
-  }
-  void Start()
-  {
-    WtTicTacToeGameDialog * const d = new WtTicTacToeGameDialog;
-    d->m_signal_close.connect(
-    boost::bind(
-      &WtTicTacToeDialog::ShowMenu,
-      this));
-    this->clear();
-    this->addWidget(d);
-  }
-};
-//---------------------------------------------------------------------------
-struct WtTicTacToeApplication : public Wt::WApplication
-{
-  WtTicTacToeApplication(const Wt::WEnvironment& env)
-    : Wt::WApplication(env)
-  {
-    this->setTitle("Thinking Wt 4: polishing a TicTacToe game");
-    this->useStyleSheet("wt.css");
-    root()->addWidget(new WtTicTacToeDialog);
-  }
-};
-```
-
-## Conclusion
-
-This [article](CppArticle.htm) elaborates on [Thinking Wt 3: creating a
-TicTacToe game](CppThinkingWt2.htm) and shows how to apply a CSS, how to
-adjust the screen layout and bundling all dialog management in a
-super-dialog, so this super-dialog can be called by other applications.
-
-## External links
-
- * [The original HTML article](http://richelbilderbeek.nl/CppThinkingWt4.htm)
